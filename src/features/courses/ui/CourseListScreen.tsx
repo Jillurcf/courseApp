@@ -1,13 +1,28 @@
-import { useRouter } from "expo-router";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import { useCourses } from "../hooks/useCourse";
-import { useCourseStore } from "../store/course.store";
+import {
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+
+import { useRouter } from "../../../../.expo/types/router";
+import { useCourses } from "../../../hooks/useCourse";
+import { useCourseStore } from "../../../store/course.store";
 
 export default function CourseListScreen() {
   const router = useRouter();
-  useCourses();
+
+  const { loading, error } = useCourses();
 
   const courses = useCourseStore((s) => s.courses);
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (error) {
+    return <Text>{error.message}</Text>;
+  }
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -21,11 +36,7 @@ export default function CourseListScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
-
-              router.push({
-                pathname: "/course/[id]",
-                params: { id: String(item.course_id) },
-              })
+              router.push(`/course/${item.course_id}`)
             }
             style={{
               padding: 12,
