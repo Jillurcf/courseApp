@@ -1,5 +1,5 @@
-import { useLocalSearchParams } from "expo-router";
-import { Button, Text, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Button, StatusBar, Text, View } from "react-native";
 import { useCourseStore } from "../../store/course.store";
 
 export default function CourseDetail() {
@@ -13,6 +13,9 @@ export default function CourseDetail() {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
+        <StatusBar barStyle="dark-content" />
+      {/* ===============BACK BUTTON============== */}
+      <Button title="⬅ Back" onPress={() => router.back()} />
       <Text style={{ fontSize: 22 }}>{course.title}</Text>
 
       <Text>{course.description_short}</Text>
