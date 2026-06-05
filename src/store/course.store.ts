@@ -1,26 +1,4 @@
-// import { create } from "zustand";
-// import { Course } from "./course.type";
 
-// type Store = {
-//   courses: Course[];
-//   setCourses: (data: Course[]) => void;
-//   toggleEnroll: (id: string) => void;
-// };
-
-// export const useCourseStore = create<Store>((set) => ({
-//   courses: [],
-
-//   setCourses: (data) => set({ courses: data }),
-
-//   toggleEnroll: (id) =>
-//     set((state) => ({
-//       courses: state.courses.map((c) =>
-//         c.course_id === id
-//           ? { ...c, is_enrolled: c.is_enrolled ? 0 : 1 }
-//           : c
-//       ),
-//     })),
-// }));
 
 import { create } from "zustand";
 import { Course } from "./course.type";
@@ -29,30 +7,37 @@ type Store = {
   courses: Course[];
 
   search: string;
+
   filter: {
     isPremium: boolean | null;
-    isEnrolled: boolean | null;
+    isEnrolled: number | null;
   };
 
+  lastSynced: string | null;
+  setLastSynced: (time: string) => void;
+
   setCourses: (data: Course[]) => void;
-
   setSearch: (text: string) => void;
-
   setFilter: (filter: Partial<Store["filter"]>) => void;
-
   toggleEnroll: (id: string) => void;
-
-  getFilteredCourses: () => Course[];
 };
 
-export const useCourseStore = create<Store>((set, get) => ({
+export const useCourseStore = create<Store>((set) => ({
   courses: [],
 
   search: "",
+
   filter: {
     isPremium: null,
     isEnrolled: null,
   },
+
+  lastSynced: null,
+
+  setLastSynced: (time) =>
+    set(() => ({
+      lastSynced: time,
+    })),
 
   setCourses: (data) => set({ courses: data }),
 
@@ -91,4 +76,6 @@ export const useCourseStore = create<Store>((set, get) => ({
       return matchSearch && matchPremium && matchEnroll;
     });
   },
+
 }));
+

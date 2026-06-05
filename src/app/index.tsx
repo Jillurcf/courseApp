@@ -1,15 +1,15 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Button,
   FlatList,
   StatusBar,
   Text,
   TextInput,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
+import { CourseItem } from "@/components/CourseItem";
 import { db } from "../database/sqlite";
 import { syncCourses } from "../features/courses/logic/syncCourses";
 import { useCourses } from "../hooks/useCourse";
@@ -18,6 +18,7 @@ import { useCourseStore } from "../store/course.store";
 export default function CourseListScreen() {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<string | null>(null);
 
   const [filter, setFilter] = useState<{
     isPremium: boolean | null;
@@ -56,6 +57,9 @@ export default function CourseListScreen() {
     });
   }, [courses, search, filter]);
 
+
+
+
   // ================= REFRESH FUNCTION =================
   const onRefresh = async () => {
     try {
@@ -75,12 +79,32 @@ export default function CourseListScreen() {
 
       // 3. Update Zustand store
       setCourses(local);
+
+      // ✅ ONLY update after success
+      setLastSynced(new Date().toISOString());
+
     } catch (err) {
       console.log("❌ Refresh error:", err);
+
+      // ❌ DO NOT update lastSynced here
     } finally {
       setRefreshing(false);
     }
   };
+
+  const renderItem = useCallback(({ item }) => {
+    return (
+      <CourseItem
+        item={item}
+        onPress={() =>
+          router.push({
+            pathname: "/course/[id]",
+            params: { id: item.course_id },
+          })
+        }
+      />
+    );
+  }, []);
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -148,27 +172,28 @@ export default function CourseListScreen() {
         keyExtractor={(item) => item.course_id}
         refreshing={refreshing}
         onRefresh={onRefresh}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/course/[id]",
-                params: { id: String(item.course_id) },
-              })
-            }
-            style={{
-              padding: 12,
-              borderWidth: 1,
-              marginVertical: 8,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ fontWeight: "bold" }}>
-              {item.title}
-            </Text>
-            <Text>{item.instructor_name}</Text>
-          </TouchableOpacity>
-        )}
+        // renderItem={({ item }) => (
+        //   <TouchableOpacity
+        //     onPress={() =>
+        //       router.push({
+        //         pathname: "/course/[id]",
+        //         params: { id: String(item.course_id) },
+        //       })
+        //     }
+        //     style={{
+        //       padding: 12,
+        //       borderWidth: 1,
+        //       marginVertical: 8,
+        //       borderRadius: 8,
+        //     }}
+        //   >
+        //     <Text style={{ fontWeight: "bold" }}>
+        //       {item.title}
+        //     </Text>
+        //     <Text>{item.instructor_name}</Text>
+        //   </TouchableOpacity>
+        // )}
+        renderItem={renderItem}
       />
     </View>
   );
