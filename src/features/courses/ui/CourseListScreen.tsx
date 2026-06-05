@@ -14,8 +14,10 @@ export default function CourseListScreen() {
 
   const { loading, error } = useCourses();
 
-  const courses = useCourseStore((s) => s.courses);
-
+  // const courses = useCourseStore((s) => s.courses);
+  const courses = useCourseStore((s) => s.getFilteredCourses());
+  const setSearch = useCourseStore((s) => s.setSearch);
+  const setFilter = useCourseStore((s) => s.setFilter);
   if (loading) {
     return <Text>Loading...</Text>;
   }

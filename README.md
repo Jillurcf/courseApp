@@ -1,56 +1,81 @@
-# Welcome to your Expo app 👋
+# Course App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Tech Stack
+- Expo React Native
+- TypeScript
+- Supabase
+- SQLite (expo-sqlite)
+- Zustand
 
-## Get started
+---
 
-1. Install dependencies
+## Architecture
+Feature-based Clean Architecture with Offline-First design.
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Offline Strategy
+1. Load data from SQLite first (instant UI)
+2. Sync with Supabase in background
+3. Merge server data with local enrollment
+4. Persist updated data in SQLite
+5. UI updates automatically via Zustand
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## Database Schema (Supabase)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Table: courses
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- course_id (text, primary key)
+- title (text)
+- description_short (text)
+- instructor_name (text)
+- duration_weeks (int)
+- price_usd (number)
+- is_premium (boolean)
+- tags (text[])
+- rating (number)
+- last_updated (timestamp)
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Setup
 
-```bash
-npm run reset-project
-```
+1. npm install
+2. create .env file
+3. add Supabase URL + anon key
+4. run expo start or
+5. npm run android
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## Local DB
+Uses expo-sqlite for offline storage.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+---
 
-## Learn more
+## Sync Flow
+Supabase → Sync Engine → SQLite → Zustand → UI
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Testing
+- repository tests
+- sync logic tests
+- filter/search tests
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Features
+- Offline-first browsing
+- Course search
+- Enrollment system
+- Background sync
+- Persistent local state
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## Notes
+- SQLite is the source of truth
+- Supabase is remote source only
