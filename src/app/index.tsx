@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
-  Button,
   FlatList,
+  RefreshControl,
   StatusBar,
   Text,
   TextInput,
-  View
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { CourseItem } from "@/components/CourseItem";
@@ -16,7 +17,8 @@ import { useCourses } from "../hooks/useCourse";
 import { useCourseStore } from "../store/course.store";
 
 export default function CourseListScreen() {
-  const [search, setSearch] = useState("");
+  const router = useRouter();
+
   const [refreshing, setRefreshing] = useState(false);
   const [lastSynced, setLastSynced] = useState<string | null>(null);
 
@@ -28,17 +30,14 @@ export default function CourseListScreen() {
     isEnrolled: null,
   });
 
-  const router = useRouter();
+  const [search, setSearch] = useState("");
 
-  // Load initial data (offline-first)
   useCourses();
 
   const courses = useCourseStore((s) => s.courses);
   const setCourses = useCourseStore((s) => s.setCourses);
 
-  console.log("Courses:", courses);
-
-  // ================= FILTER LOGIC =================
+  // ================= FILTER =================
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const matchSearch =
@@ -57,43 +56,27 @@ export default function CourseListScreen() {
     });
   }, [courses, search, filter]);
 
-
-
-
-  // ================= REFRESH FUNCTION =================
+  // ================= REFRESH =================
   const onRefresh = async () => {
     try {
       setRefreshing(true);
 
-      console.log("🔄 Syncing courses...");
-
-      // 1. Sync from Supabase → SQLite
       await syncCourses();
 
-      // 2. Read from SQLite (offline source of truth)
-      const local = await db.getAllAsync(
-        "SELECT * FROM courses"
-      );
+      const local = await db.getAllAsync("SELECT * FROM courses");
 
-      console.log("📦 Refreshed data:", local);
-
-      // 3. Update Zustand store
       setCourses(local);
-
-      // ✅ ONLY update after success
       setLastSynced(new Date().toISOString());
-
     } catch (err) {
-      console.log("❌ Refresh error:", err);
-
-      // ❌ DO NOT update lastSynced here
+      console.log(err);
     } finally {
       setRefreshing(false);
     }
   };
 
-  const renderItem = useCallback(({ item }) => {
-    return (
+  // ================= ITEM =================
+  const renderItem = useCallback(
+    ({ item }) => (
       <CourseItem
         item={item}
         onPress={() =>
@@ -103,97 +86,118 @@ export default function CourseListScreen() {
           })
         }
       />
-    );
-  }, []);
+    ),
+    []
+  );
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View style={{ flex: 1, backgroundColor: "#F6F8FC", padding: 16 }}>
       <StatusBar barStyle="dark-content" />
 
-      <Text style={{ fontSize: 20, fontWeight: "bold" }}>
-        Courses
-      </Text>
-
-      {/* ================= SEARCH ================= */}
-      <TextInput
-        placeholder="Search courses..."
+      {/* HEADER CARD */}
+      <View
         style={{
-          borderWidth: 1,
-          padding: 10,
-          marginVertical: 10,
-          borderRadius: 8,
+          backgroundColor: "#2563EB",
+          padding: 16,
+          borderRadius: 16,
+          marginBottom: 12,
         }}
-        onChangeText={setSearch}
-      />
+      >
+        <Text style={{ fontSize: 22, fontWeight: "bold", color: "white" }}>
+          📚 Course App
+        </Text>
 
-      {/* ================= FILTERS ================= */}
-      <View style={{ flexDirection: "row", gap: 10, marginBottom: 10 }}>
-        <Button
-          title="All"
-          onPress={() =>
-            setFilter({ isPremium: null, isEnrolled: null })
-          }
-        />
+        <Text style={{ color: "white", opacity: 0.8, marginTop: 4 }}>
+          Learn anytime, anywhere
+        </Text>
 
-        <Button
-          title="Free"
-          onPress={() =>
-            setFilter((prev) => ({
-              ...prev,
-              isPremium: false,
-            }))
-          }
-        />
-
-        <Button
-          title="Premium"
-          onPress={() =>
-            setFilter((prev) => ({
-              ...prev,
-              isPremium: true,
-            }))
-          }
-        />
-
-        <Button
-          title="Enrolled"
-          onPress={() =>
-            setFilter((prev) => ({
-              ...prev,
-              isEnrolled: 1,
-            }))
-          }
-        />
+        <Text style={{ color: "#E5E7EB", fontSize: 12, marginTop: 6 }}>
+          Last synced:{" "}
+          {lastSynced
+            ? new Date(lastSynced).toLocaleString()
+            : "Never"}
+        </Text>
       </View>
 
-      {/* ================= LIST ================= */}
+      {/* SEARCH */}
+      <TextInput
+        placeholder="🔍 Search courses..."
+        value={search}
+        onChangeText={setSearch}
+        style={{
+          backgroundColor: "white",
+          padding: 12,
+          borderRadius: 12,
+          marginBottom: 12,
+          shadowColor: "#000",
+          shadowOpacity: 0.05,
+          shadowRadius: 5,
+          elevation: 2,
+        }}
+      />
+
+      {/* FILTER CHIPS */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 8,
+          marginBottom: 10,
+        }}
+      >
+        {[
+          { label: "All", value: null },
+          { label: "Free", value: false },
+          { label: "Premium", value: true },
+        ].map((item) => (
+          <TouchableOpacity
+            key={item.label}
+            onPress={() =>
+              setFilter((prev) => ({
+                ...prev,
+                isPremium: item.value as any,
+              }))
+            }
+            style={{
+              paddingVertical: 6,
+              paddingHorizontal: 14,
+              borderRadius: 20,
+              backgroundColor:
+                filter.isPremium === item.value
+                  ? "#2563EB"
+                  : "white",
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+            }}
+          >
+            <Text
+              style={{
+                color:
+                  filter.isPremium === item.value
+                    ? "white"
+                    : "#111827",
+              }}
+            >
+              {item.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* LIST */}
       <FlatList
         data={filteredCourses}
         keyExtractor={(item) => item.course_id}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        // renderItem={({ item }) => (
-        //   <TouchableOpacity
-        //     onPress={() =>
-        //       router.push({
-        //         pathname: "/course/[id]",
-        //         params: { id: String(item.course_id) },
-        //       })
-        //     }
-        //     style={{
-        //       padding: 12,
-        //       borderWidth: 1,
-        //       marginVertical: 8,
-        //       borderRadius: 8,
-        //     }}
-        //   >
-        //     <Text style={{ fontWeight: "bold" }}>
-        //       {item.title}
-        //     </Text>
-        //     <Text>{item.instructor_name}</Text>
-        //   </TouchableOpacity>
-        // )}
         renderItem={renderItem}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#2563EB"]}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   );
