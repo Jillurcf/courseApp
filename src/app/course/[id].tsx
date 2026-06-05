@@ -13,10 +13,25 @@ export default function CourseDetail() {
   if (!course) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
+        <Text>Loading course...</Text>
       </View>
     );
   }
+
+  // ================= SAFE TAG PARSING =================
+  let tags: string[] = [];
+
+  try {
+    tags =
+      typeof course.tags === "string"
+        ? JSON.parse(course.tags)
+        : course.tags || [];
+  } catch (e) {
+    tags = [];
+  }
+
+  const isEnrolled = course.is_enrolled === 1;
+  const isPremium = course.is_premium === 1;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F6F8FC", padding: 16 }}>
@@ -47,13 +62,7 @@ export default function CourseDetail() {
           marginBottom: 16,
         }}
       >
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: "bold",
-            color: "white",
-          }}
-        >
+        <Text style={{ fontSize: 22, fontWeight: "bold", color: "white" }}>
           {course.title}
         </Text>
 
@@ -62,7 +71,7 @@ export default function CourseDetail() {
         </Text>
       </View>
 
-      {/* INFO CARD */}
+      {/* DETAILS CARD */}
       <View
         style={{
           backgroundColor: "white",
@@ -84,55 +93,84 @@ export default function CourseDetail() {
           💰 Price: ${course.price_usd}
         </Text>
 
-        {/* STATUS BADGE */}
-        <View
-          style={{
-            marginTop: 10,
-            alignSelf: "flex-start",
-            backgroundColor: course.is_enrolled
-              ? "#DCFCE7"
-              : "#F3F4F6",
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 20,
-          }}
-        >
-          <Text
+        <Text style={{ marginBottom: 6 }}>
+          👨 Instructor: {course.instructor_name}
+        </Text>
+
+        {/* ================= TAGS ================= */}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+          {tags.map((tag: string, index: number) => (
+            <View
+              key={index}
+              style={{
+                backgroundColor: "#E5E7EB",
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 20,
+              }}
+            >
+              <Text style={{ fontSize: 12 }}>{tag}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* ================= BADGES ================= */}
+        <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+          {/* Premium */}
+          <View
             style={{
-              color: course.is_enrolled
-                ? "#16A34A"
-                : "#6B7280",
-              fontWeight: "600",
+              backgroundColor: isPremium ? "#FEF3C7" : "#DCFCE7",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 20,
             }}
           >
-            {course.is_enrolled ? "Enrolled" : "Not Enrolled"}
-          </Text>
+            <Text
+              style={{
+                color: isPremium ? "#B45309" : "#16A34A",
+                fontWeight: "600",
+                fontSize: 12,
+              }}
+            >
+              {isPremium ? "Premium" : "Free"}
+            </Text>
+          </View>
+
+          {/* Enrollment */}
+          <View
+            style={{
+              backgroundColor: isEnrolled ? "#DCFCE7" : "#F3F4F6",
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 20,
+            }}
+          >
+            <Text
+              style={{
+                color: isEnrolled ? "#16A34A" : "#6B7280",
+                fontWeight: "600",
+                fontSize: 12,
+              }}
+            >
+              {isEnrolled ? "Enrolled" : "Not Enrolled"}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* ENROLL BUTTON */}
+      {/* ================= ACTION BUTTON ================= */}
       <TouchableOpacity
         onPress={() => toggleEnroll(course.course_id)}
         style={{
-          backgroundColor: course.is_enrolled
-            ? "#EF4444"
-            : "#2563EB",
+          backgroundColor: isEnrolled ? "#EF4444" : "#2563EB",
           paddingVertical: 14,
           borderRadius: 14,
           alignItems: "center",
           marginTop: 10,
         }}
       >
-        <Text
-          style={{
-            color: "white",
-            fontSize: 16,
-            fontWeight: "bold",
-          }}
-        >
-          {course.is_enrolled
-            ? "Remove Enrollment"
-            : "Enroll Now"}
+        <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+          {isEnrolled ? "Remove Enrollment" : "Enroll Now"}
         </Text>
       </TouchableOpacity>
     </View>
