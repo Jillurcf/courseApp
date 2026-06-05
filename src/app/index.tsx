@@ -8,6 +8,7 @@ export default function CourseListScreen() {
   useCourses();
 
   const courses = useCourseStore((s) => s.courses);
+  console.log("Courses:", courses);
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
