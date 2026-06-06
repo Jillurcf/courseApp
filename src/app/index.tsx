@@ -35,6 +35,7 @@ export default function CourseListScreen() {
   useCourses();
 
   const courses = useCourseStore((s) => s.courses);
+  console.log("COURSES:", courses);
   const setCourses = useCourseStore((s) => s.setCourses);
 
   // ================= FILTER =================
@@ -44,6 +45,9 @@ export default function CourseListScreen() {
         course.title.toLowerCase().includes(search.toLowerCase()) ||
         course.instructor_name.toLowerCase().includes(search.toLowerCase());
 
+      // const matchPremium =
+      //   filter.isPremium === null ||
+      //   course.is_premium === filter.isPremium;
       const matchPremium =
         filter.isPremium === null ||
         course.is_premium === filter.isPremium;

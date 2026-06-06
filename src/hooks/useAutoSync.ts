@@ -11,13 +11,18 @@ export const useAutoSync = () => {
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(async (state) => {
       if (state.isConnected) {
-        console.log("🌐 Internet back → syncing...");
-
         await syncCourses();
 
         const local = await db.getAllAsync("SELECT * FROM courses");
+        const normalized = local.map((course: any) => ({
+          ...course,
+          is_premium: Boolean(course.is_premium),
+          is_enrolled: Number(course.is_enrolled),
+        }));
 
-        setCourses(local);
+        setCourses(normalized);
+
+        // setCourses(local);
         setLastSynced(new Date().toISOString());
       }
     });
