@@ -11,6 +11,7 @@ import {
 } from "react-native";
 
 import { CourseItem } from "@/components/CourseItem";
+import { normalizeCourses } from "@/utils/normalizeCourse";
 import { db } from "../database/sqlite";
 import { syncCourses } from "../features/courses/logic/syncCourses";
 import { useCourses } from "../hooks/useCourse";
@@ -69,7 +70,7 @@ export default function CourseListScreen() {
 
       const local = await db.getAllAsync("SELECT * FROM courses");
 
-      setCourses(local);
+        setCourses(normalizeCourses(local))
       setLastSynced(new Date().toISOString());
     } catch (err) {
       console.log(err);

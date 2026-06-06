@@ -1,4 +1,5 @@
 
+import { normalizeCourses } from "@/utils/normalizeCourse";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect } from "react";
 import { db } from "../database/sqlite";
@@ -10,22 +11,21 @@ export const useCourses = () => {
 
   useEffect(() => {
     const load = async () => {
-      console.log("🔥 useCourses called");
+
 
       // STEP 1: LOAD FROM SQLITE FIRST (FAST + OFFLINE)
       const local = await db.getAllAsync(
         "SELECT * FROM courses"
       );
 
-      console.log("📦 LOCAL DATA:", local);
 
-      setCourses(local);
 
+       setCourses(normalizeCourses(local))
       // STEP 2: CHECK INTERNET
       const net = await NetInfo.fetch();
 
       if (!net.isConnected) {
-        console.log("📴 Offline mode - skipping sync");
+   
         return;
       }
 
@@ -40,7 +40,7 @@ export const useCourses = () => {
 
         setCourses(updated);
       } catch (e) {
-        console.log("⚠️ Sync failed, using local data only");
+       
       }
     };
 
